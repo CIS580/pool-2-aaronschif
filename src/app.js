@@ -2,6 +2,7 @@
 
 /* Classes */
 const Game = require('./game');
+let vector = require('./vector')
 
 /* Global variables */
 var canvas = document.getElementById('screen');
@@ -232,6 +233,27 @@ function update(elapsedTime) {
   });
 
   // TODO: Process ball collisions
+  collisions.forEach((pair)=>{
+      let collisionNormal = {
+          x: pair.a.x - pair.b.x,
+          y: pair.a.y - pair.b.y,
+      }
+
+      let overlap = vector.magnitude(collisionNormal)
+
+      let angle = Math.atan2(collisionNormal.y, collisionNormal.x)
+      let a = vector.rotate(pair.a, angle)
+      let b = vector.rotate(pair.b, angle)
+
+      b.x, a.x = a.x, b.x
+
+      a = vector.rotate(a, -angle)
+      b = vector.rotate(b, -angle)
+      pair.a.x = a.x
+      pair.a.y = a.y
+      pair.b.x = b.x
+      pair.b.y = b.y
+  })
 }
 
 function render(elapsedTime, ctx) {

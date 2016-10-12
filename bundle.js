@@ -3,6 +3,7 @@
 
 /* Classes */
 const Game = require('./game');
+let vector = require('./vector')
 
 /* Global variables */
 var canvas = document.getElementById('screen');
@@ -114,26 +115,12 @@ canvas.onmouseup = function(event) {
   stick.charging = false;
 }
 
-/**
- * @function masterLoop
- * Advances the game in sync with the refresh rate of the screen
- * @param {DOMHighResTimeStamp} timestamp the current time
- */
 var masterLoop = function(timestamp) {
   game.loop(timestamp);
   window.requestAnimationFrame(masterLoop);
 }
 masterLoop(performance.now());
 
-
-/**
- * @function update
- * Updates the game state, moving
- * game objects and handling interactions
- * between them.
- * @param {DOMHighResTimeStamp} elapsedTime indicates
- * the number of milliseconds passed since the last frame.
- */
 function update(elapsedTime) {
 
   // charge cue stick
@@ -247,15 +234,27 @@ function update(elapsedTime) {
   });
 
   // TODO: Process ball collisions
+  collisions.forEach((pair)=>{
+      let collisionNormal = {
+          x: pair.a.x - pair.b.x,
+          y: pair.a.y - pair.b.y,
+      }
+
+      let angle = Math.atan2(collisionNormal.y, collisionNormal.x)
+      let a = vector.rotate(pair.a, angle)
+      let b = vector.rotate(pair.b, angle)
+
+      b.x, a.x = a.x, b.x
+
+      a = vector.rotate(a, -angle)
+      b = vector.rotate(b, -angle)
+      pair.a.x = a.x
+      pair.a.y = a.y
+      pair.b.x = b.x
+      pair.b.y = b.y
+  })
 }
 
-/**
-  * @function render
-  * Renders the current game state into a back buffer.
-  * @param {DOMHighResTimeStamp} elapsedTime indicates
-  * the number of milliseconds passed since the last frame.
-  * @param {CanvasRenderingContext2D} ctx the context to render to
-  */
 function render(elapsedTime, ctx) {
   // Render the table
   ctx.fillStyle = "#3F6922";
@@ -305,7 +304,7 @@ function render(elapsedTime, ctx) {
   ctx.beginPath();
 }
 
-},{"./game":2}],2:[function(require,module,exports){
+},{"./game":2,"./vector":3}],2:[function(require,module,exports){
 "use strict";
 
 /**
@@ -361,6 +360,37 @@ Game.prototype.loop = function(newTime) {
 
   // Flip the back buffer
   this.frontCtx.drawImage(this.backBuffer, 0, 0);
+}
+
+},{}],3:[function(require,module,exports){
+module.exports =exports =  {
+    rotate: rotate,
+    dotProduct: dotProduct,
+    magnitude: magnitude,
+    normalize: normalize,
+}
+
+function rotate(a, angle) {
+    return {
+        x: a.x * Math.cos(angle) - a.y * Math.sin(angle),
+        y: a.x * Math.sin(angle) + a.y * Math.cos(angle)
+    }
+}
+
+function dotProduct(a, b) {
+    return a.x * b.x + a.y * b.y
+}
+
+function magnitude(a) {
+    return Math.sqrt(a.x ^ 2 + a.y ^ 2)
+}
+
+function normalize(a) {
+    var mag = magnitude(a)
+    return {
+        x: a.x / mag,
+        y: a.y / mag,
+    }
 }
 
 },{}]},{},[1]);
